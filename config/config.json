@@ -1,0 +1,17 @@
+{
+    "server": {
+      "port" : 8080
+    },
+    "Cluster0": {
+        "URL": "mongodb+srv://lgpd:8c919Z3fp2T6oP8e@cluster01.o74iu.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+        "name": "Cluster0"
+    },
+    "Cluster1": {
+        "URL": "mongodb+srv://lgpd:8c919Z3fp2T6oP8e@cluster01.o74iu.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+        "name": "BKP_PRIMARY"
+    },
+    "Cluster2": {
+        "URL": "mongodb+srv://lgpd:8c919Z3fp2T6oP8e@cluster01.o74iu.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+        "name": "BKP_SECONDARY"
+    }
+  }
