@@ -3,14 +3,25 @@ const { USER_COLLECTION } = require('../constants/constants');
 const { ObjectId } = require('mongodb');
 const queue = require("../rabbitmq/queue");
 const { RABBITMQ_INSERT, RABBITMQ_UPDATE } = require('../constants/rabbitmq.queue');
+const { PRIMARY, SECONDARY, DEFAULT } = require('../constants/cluster');
 
 USER_EXIST =  "Usuário já existe";
 
-
-const getByEmail = async (email) => {
-    return await db.getMainDB().then(conn => {
-        return conn.collection(USER_COLLECTION).findOne({ "email": { $eq: email } });
-    })
+const getByEmail = async (email, cluster) => {
+    if (cluster == PRIMARY) {
+        return await db.getPrimaryBackup().then(conn => {
+            return conn.collection(USER_COLLECTION).findOne({ "email": { $eq: email } });
+        })
+    } else if (cluster == SECONDARY) {
+        return await db.getSecondaryBackup().then(conn => {
+            return conn.collection(USER_COLLECTION).findOne({ "email": { $eq: email } });
+        })
+    } else {
+        return await db.getMainDB().then(conn => {
+            const user = conn.collection(USER_COLLECTION).findOne({ "email": { $eq: email } });
+            return user;
+        })
+    }
 };
 
 const getAll = async () => {
@@ -29,10 +40,11 @@ const getById = async (id) => {
 
 // CREATE
 const create = async (user) => {
-    const userDB = await getByEmail(user.email);
+    const userDB = await getByEmail(user.email, DEFAULT);
     if (userDB) {
         throw USER_EXIST;
     }
+
     createOnDefault(user);
 };
 
@@ -62,12 +74,12 @@ const createOnDefault = async (user) => {
 
 // UPDATES BD
 
-const update = async (user, db) => {
-    const userDB = await getByEmail(user.email);
+const update = async (user) => {
+    const userDB = await getByEmail(user.email, DEFAULT);
     if (userDB && user._id != userDB._id) {
         throw USER_EXIST;
     }
-    updateDefault(user);
+    updateDefault(user, false);
 };
 
 const updateOne = (conn, user) => {
@@ -89,10 +101,12 @@ const updateOnSecondary = async (user) => {
     });
 };
 
-const updateDefault = async (user) => {
-    await db.getPrimaryBackup().then(conn => {
+const updateDefault = async (user, isGhost) => {
+    await db.getMainDB().then(conn => {
         updateOne(conn, user);
-        sendToRabbit(user, RABBITMQ_UPDATE);
+        if (!isGhost) {
+            sendToRabbit(user, RABBITMQ_UPDATE);
+        }
     });
 }
 
@@ -109,6 +123,33 @@ const simulateInsert = () => {
     });
 };
 
+
+
+const deleteByEmail = async (email) => {
+    let userSecondaryBackup = await getByEmail(email, SECONDARY);
+    let userPrimaryBackup = await getByEmail(email, PRIMARY);
+    let userDefault = await getByEmail(email, DEFAULT);
+    updateOnSecondary(rebuildUser(userSecondaryBackup));
+    updateOnPrimary(rebuildUser(userPrimaryBackup));
+    updateDefault(rebuildUser(userDefault), true);
+    return [userSecondaryBackup, userPrimaryBackup, userDefault];
+};
+
+const rebuildUser = (user) => {
+    return {
+        _id: new ObjectId(user._id),
+        email: "system.ghost@g.com",
+        name: "ghost",
+        lastName: "system",
+        birthDate: user.birthDate,
+        cpf: "000.000.000-00",
+        rg: "00.000.000-2",
+        father: "Ghost Fateher",
+        mother: "Ghost Mother",
+        purchase: user.purchase
+    };
+};
+
 const remapUser = (userJson) => {
    const user = JSON.parse(userJson);
    return  {
@@ -118,9 +159,10 @@ const remapUser = (userJson) => {
     birthDate: user.birthDate,
     cpf: user.cpf,
     rg: user.rg,
-    father: user.pai,
-    mother: "Maria"
+    father: user.father,
+    mother: user.mother,
+    purchase: user.purchase
    };
 };
 
-module.exports = { getAll, create, update, getById, simulateInsert };
+module.exports = { getAll, create, update, getById, simulateInsert, deleteByEmail };

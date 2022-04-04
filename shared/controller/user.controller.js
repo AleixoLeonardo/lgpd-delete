@@ -7,6 +7,7 @@ router.post('', (req, res) => create(req, res));
 router.get('', (req, res) => getAll(req, res));
 router.put('', (req, res) => update(req, res));
 router.get('/:id', (req, res) => getById(req, res));
+router.get('/delete/email/:email', (req, res) => deleteByEmail(req, res));
 router.get('/simulate/insert', (req, res) => simulateInsert(req, res));
 
 //POST
@@ -28,8 +29,9 @@ const update = async (req, res) => {
 };
 
 //DELETE
-const deleteOne = async (req, res) => {
-
+const deleteByEmail = async (req, res) => {
+    const result = await userService.deleteByEmail(req.params["email"]);
+    res.status(201).send(result);
 };
 
 //GET
