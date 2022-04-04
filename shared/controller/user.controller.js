@@ -7,6 +7,7 @@ router.post('', (req, res) => create(req, res));
 router.get('', (req, res) => getAll(req, res));
 router.put('', (req, res) => update(req, res));
 router.get('/:id', (req, res) => getById(req, res));
+router.get('/simulate/insert', (req, res) => simulateInsert(req, res));
 
 //POST
 const create = (req, res) => {
@@ -39,6 +40,10 @@ const getAll = async (req, res) => {
 
 const getById = async (req, res) => {
     res.send(await userService.getById(req.params["id"]));
+};
+
+const simulateInsert = async (erq, res) => {
+    userService.simulateInsert();
 };
 
 module.exports = router;
