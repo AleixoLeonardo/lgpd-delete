@@ -4,38 +4,44 @@ const { ObjectId } = require('mongodb');
 const queue = require("../rabbitmq/queue");
 const { RABBITMQ_INSERT, RABBITMQ_UPDATE } = require('../constants/rabbitmq.queue');
 const { PRIMARY, SECONDARY, DEFAULT } = require('../constants/cluster');
+const cryptService = require('./crypt.service');
+const keysService = require('./keys.service');
+const fs = require('fs');
+const config = JSON.parse(fs.readFileSync('./config/config.json', 'utf8'));
 
 USER_EXIST =  "Usuário já existe";
+const baseKey = '00000000000';
 
 const getByEmail = async (email, cluster) => {
+    const hashed = await cryptService.encrypt(email, config.keyEmail);
+    let conn = null;
     if (cluster == PRIMARY) {
-        return await db.getPrimaryBackup().then(conn => {
-            return conn.collection(USER_COLLECTION).findOne({ "email": { $eq: email } });
-        })
+        conn = await db.getPrimaryBackup();
+        
     } else if (cluster == SECONDARY) {
-        return await db.getSecondaryBackup().then(conn => {
-            return conn.collection(USER_COLLECTION).findOne({ "email": { $eq: email } });
-        })
+        conn = await db.getSecondaryBackup();
     } else {
-        return await db.getMainDB().then(conn => {
-            const user = conn.collection(USER_COLLECTION).findOne({ "email": { $eq: email } });
-            return user;
-        })
+        conn = await db.getMainDB();
     }
+    return await conn.collection(USER_COLLECTION).findOne({ "email": { "iv": hashed.content } });
 };
 
 const getAll = async () => {
-    return await db.getMainDB().then(conn => {
-        return conn.collection(USER_COLLECTION).find().toArray();
-    })
+    const conn = await db.getMainDB();
+    const users = await conn.collection(USER_COLLECTION).find().toArray();
+    var results = await Promise.all(users.map(async (user) => {
+        await translateUser(user)
+        return user;
+    }));
+    return results;
 };
 
 const getById = async (id) => {
     return await db.getMainDB().then(conn => {
         return conn.collection(USER_COLLECTION).findOne({ _id: ObjectId(id) }).then(user => {
-            return user;
+            return translateUser(user);
         })
-    })
+    });
 }
 
 // CREATE
@@ -44,13 +50,31 @@ const create = async (user) => {
     if (userDB) {
         throw USER_EXIST;
     }
+    simulateInsert();
+    const pass = `${user.cpf}@${user.rg}${baseKey}`;
+    user = encryptSensibleData(user, pass);
+    return await createOnDefault(user, pass);
+};
 
-    createOnDefault(user);
+const encryptSensibleData = (user, pass) => {
+    try {
+        user.email = cryptService.encrypt(user.email, config.keyEmail);
+        user.name = cryptService.encrypt(user.name, pass);
+        user.lastName = cryptService.encrypt(user.lastName, pass);
+        user.cpf = cryptService.encrypt(user.cpf, pass);
+        user.rg = cryptService.encrypt(user.rg, pass);
+        user.father = cryptService.encrypt(user.father, pass);
+        user.mother = cryptService.encrypt(user.mother, pass);
+        return user;
+    } catch (e) {
+        console.log(e)
+    }
+    
 };
 
 
-const createOne = (conn, user) => {
-    conn.collection(USER_COLLECTION).insertOne(user);
+const createOne = async (conn, user) => {
+    return await conn.collection(USER_COLLECTION).insertOne(user);
 };
 
 const createOnPrimary = async (user) => {
@@ -65,15 +89,18 @@ const createOnSecondary = async (user) => {
     })
 };
 
-const createOnDefault = async (user) => {
-    await db.getMainDB().then(conn => {
-        createOne(conn, user);
-        sendToRabbit(user, RABBITMQ_INSERT);
-    })
+const createOnDefault = async (user, pass) => {
+    return await db.getMainDB().then(conn => {
+        return createOne(conn, user).then(userInserted => {
+            user._id = ObjectId(userInserted.insertedId);
+            keysService.createKey(pass, user._id);
+            sendToRabbit(user, RABBITMQ_INSERT);
+            return userInserted;
+        });
+    });
 };
 
 // UPDATES BD
-
 const update = async (user) => {
     const userDB = await getByEmail(user.email, DEFAULT);
     if (userDB && user._id != userDB._id) {
@@ -89,18 +116,6 @@ const updateOne = (conn, user) => {
     );
 }
 
-const updateOnPrimary = async (user) => {
-    await db.getPrimaryBackup().then(conn => {
-        updateOne(conn, user);
-    });
-};
-
-const updateOnSecondary = async (user) => {
-    await db.getSecondaryBackup().then(conn => {
-        updateOne(conn, user);
-    });
-};
-
 const updateDefault = async (user, isGhost) => {
     await db.getMainDB().then(conn => {
         updateOne(conn, user);
@@ -109,6 +124,19 @@ const updateDefault = async (user, isGhost) => {
         }
     });
 }
+
+const translateUser = async (user) => {
+    const keyObj = await keysService.getKeyByUser(user._id)
+    const { key } = keyObj;
+    user.email = await cryptService.decrypt(user.email, config.keyEmail);
+    user.name = await cryptService.decrypt(user.name, key);
+    user.lastName = await cryptService.decrypt(user.lastName, key);
+    user.cpf = await cryptService.decrypt(user.cpf, key);
+    user.rg = await cryptService.decrypt(user.rg, key);
+    user.father = await cryptService.decrypt(user.father, key);
+    user.mother = await cryptService.decrypt(user.mother, key);
+    return { ...user };
+};
 
 // SEND RABBIT
 const sendToRabbit = (user, queue_to_send) => {
@@ -125,29 +153,9 @@ const simulateInsert = () => {
 
 
 
-const deleteByEmail = async (email) => {
-    let userSecondaryBackup = await getByEmail(email, SECONDARY);
-    let userPrimaryBackup = await getByEmail(email, PRIMARY);
-    let userDefault = await getByEmail(email, DEFAULT);
-    updateOnSecondary(rebuildUser(userSecondaryBackup));
-    updateOnPrimary(rebuildUser(userPrimaryBackup));
-    updateDefault(rebuildUser(userDefault), true);
-    return [userSecondaryBackup, userPrimaryBackup, userDefault];
-};
-
-const rebuildUser = (user) => {
-    return {
-        _id: new ObjectId(user._id),
-        email: "system.ghost@g.com",
-        name: "ghost",
-        lastName: "system",
-        birthDate: user.birthDate,
-        cpf: "000.000.000-00",
-        rg: "00.000.000-2",
-        father: "Ghost Fateher",
-        mother: "Ghost Mother",
-        purchase: user.purchase
-    };
+const deleteByCpfRg = async (cpf, rg) => {
+    const pass = `${cpf}@${rg}${baseKey}`;
+    keysService.deleteByKey(pass);
 };
 
 const remapUser = (userJson) => {
@@ -165,4 +173,4 @@ const remapUser = (userJson) => {
    };
 };
 
-module.exports = { getAll, create, update, getById, simulateInsert, deleteByEmail };
+module.exports = { getAll, create, update, getById, simulateInsert, deleteByCpfRg };

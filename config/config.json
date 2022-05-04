@@ -13,7 +13,10 @@
     "Cluster2": {
         "URL": "mongodb+srv://lgpd:9IYh4W6c3KazMJxG@cluster0.l3bbk.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
         "name": "BKP_SECONDARY"
-    }
+    },
+    "algorithm" : "aes-256-ctr",
+    "type" : "hex",
+    "keyEmail": "9IYh4W6c3KazMJxG9IYh4W6c3KazMJxG"
   }
 
   
