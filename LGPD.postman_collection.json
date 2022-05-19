@@ -1,0 +1,203 @@
+{
+	"info": {
+		"_postman_id": "338216a1-04d5-43d4-b008-628267f58d36",
+		"name": "LGPD",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "4456550"
+	},
+	"item": [
+		{
+			"name": "USER",
+			"item": [
+				{
+					"name": "GET ALL",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/user",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET BY ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/user/62463d396a9e5b972281f9ba",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"user",
+								"62463d396a9e5b972281f9ba"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CREATE",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"postman.setEnvironmentVariable(\"user_id\", jsonData.insertedId);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"myemail@gmail.com\",\r\n    \"name\": \"MyName\",\r\n    \"lastName\": \"MyLastName\",\r\n    \"birthDate\": \"mybirthDate\",\r\n    \"cpf\": \"myCPF\",\r\n    \"rg\": \"myRG\",\r\n    \"father\": \"FatherName\",\r\n    \"mother\": \"MotherName\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/user",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UPDATE",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": \"62463d396a9e5b972281f9ba\",\r\n    \"email\": \"aleixo1leonardo@gmail.com\",\r\n    \"name\": \"Leonardo\",\r\n    \"lastName\": \"Aleixo\",\r\n    \"birthDate\": \"01/01/1999\",\r\n    \"cpf\": \"123456789\",\r\n    \"rg\": \"54321\",\r\n    \"pai\": \"Jose\",\r\n    \"mae\": \"Maria\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/user",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SIMULATE",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/user/simulate/insert",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"user",
+								"simulate",
+								"insert"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CLEAN USER",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/user/delete/{{user_id}}",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"user",
+								"delete",
+								"{{user_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "SALE",
+			"item": [
+				{
+					"name": "CREATE",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Product 1\",\r\n    \"price\": 10.90,\r\n    \"user\": \"{{user_id}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/sale",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"sale"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "KEYS",
+			"item": []
+		}
+	]
+}
