@@ -7,7 +7,7 @@ router.post('', (req, res) => create(req, res));
 router.get('', (req, res) => getAll(req, res));
 router.put('', (req, res) => update(req, res));
 router.get('/:id', (req, res) => getById(req, res));
-router.get('/delete/:id', (req, res) => deleteById(req, res));
+router.delete('/delete/:id', (req, res) => deleteById(req, res));
 router.get('/simulate/insert', (req, res) => simulateInsert(req, res));
 
 //POST
