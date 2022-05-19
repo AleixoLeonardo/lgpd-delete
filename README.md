@@ -11,13 +11,13 @@
 ## College
 - Fatec São José dos Campos Professor Jessen Vidal
 
-## Tecnologias:
+## Technologies:
 - Backend
   - MongoDB
   - RabbitMQ
   - NodeJS
 
-# Referências
+# References
 
 :construction:
 
