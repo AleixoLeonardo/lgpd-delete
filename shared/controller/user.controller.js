@@ -7,7 +7,7 @@ router.post('', (req, res) => create(req, res));
 router.get('', (req, res) => getAll(req, res));
 router.put('', (req, res) => update(req, res));
 router.get('/:id', (req, res) => getById(req, res));
-router.get('/delete/email/:cpf/:rg', (req, res) => deleteByEmail(req, res));
+router.get('/delete/:id', (req, res) => deleteById(req, res));
 router.get('/simulate/insert', (req, res) => simulateInsert(req, res));
 
 //POST
@@ -29,9 +29,9 @@ const update = async (req, res) => {
 };
 
 //DELETE
-const deleteByEmail = async (req, res) => {
+const deleteById = async (req, res) => {
     try {
-        await userService.deleteByCpfRg(req.params["cpf"], req.params["rg"]);
+        await userService.deleteByCpfRg(req.params["id"]);
         res.status(201).send("DELETADO COM SUCESSO!");
     } catch (e) {
         res.status(500).send("FALHA AO DELETAR");

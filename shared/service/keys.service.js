@@ -1,6 +1,7 @@
 
 const db = require('./db.service');
 const { KEYS_COLLECTION } = require('../constants/constants');
+const { ObjectId } = require('mongodb');
 
 const createKey = (key, user) => {
     db.getMainDB().then(conn => {
@@ -19,9 +20,16 @@ const getKeyByUser = (user) => {
     });
 };
 
+
+const deleteByUser = async (key) => {
+    const conn = await db.getMainDB();
+    await conn.collection(KEYS_COLLECTION).deleteOne({ user: { $eq: ObjectId(key)} });
+};
+
+
 const deleteByKey = async (key) => {
     const conn = await db.getMainDB();
     await conn.collection(KEYS_COLLECTION).deleteOne({ key: { $eq: key} });
 };
 
-module.exports = { createKey, getKeyByUser, deleteByKey };
+module.exports = { createKey, getKeyByUser, deleteByKey, deleteByUser };

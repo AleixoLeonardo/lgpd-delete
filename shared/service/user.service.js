@@ -126,15 +126,17 @@ const updateDefault = async (user, isGhost) => {
 }
 
 const translateUser = async (user) => {
-    const keyObj = await keysService.getKeyByUser(user._id)
-    const { key } = keyObj;
-    user.email = await cryptService.decrypt(user.email, config.keyEmail);
-    user.name = await cryptService.decrypt(user.name, key);
-    user.lastName = await cryptService.decrypt(user.lastName, key);
-    user.cpf = await cryptService.decrypt(user.cpf, key);
-    user.rg = await cryptService.decrypt(user.rg, key);
-    user.father = await cryptService.decrypt(user.father, key);
-    user.mother = await cryptService.decrypt(user.mother, key);
+    const keyObj = await keysService.getKeyByUser(user._id);
+    if (keyObj) {
+        const { key } = keyObj;
+        user.email = await cryptService.decrypt(user.email, config.keyEmail);
+        user.name = await cryptService.decrypt(user.name, key);
+        user.lastName = await cryptService.decrypt(user.lastName, key);
+        user.cpf = await cryptService.decrypt(user.cpf, key);
+        user.rg = await cryptService.decrypt(user.rg, key);
+        user.father = await cryptService.decrypt(user.father, key);
+        user.mother = await cryptService.decrypt(user.mother, key);
+    }
     return { ...user };
 };
 
@@ -153,14 +155,14 @@ const simulateInsert = () => {
 
 
 
-const deleteByCpfRg = async (cpf, rg) => {
-    const pass = `${cpf}@${rg}${baseKey}`;
-    keysService.deleteByKey(pass);
+const deleteById = async (id) => {
+    keysService.deleteByUser(id);
 };
 
 const remapUser = (userJson) => {
    const user = JSON.parse(userJson);
    return  {
+    _id: user._id,       
     email: user.email,
     name: user.name,
     lastName: user.lastName,
@@ -173,4 +175,4 @@ const remapUser = (userJson) => {
    };
 };
 
-module.exports = { getAll, create, update, getById, simulateInsert, deleteByCpfRg };
+module.exports = { getAll, create, update, getById, simulateInsert, deleteByCpfRg: deleteById };

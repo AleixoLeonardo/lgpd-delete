@@ -3,15 +3,15 @@
       "port" : 8080
     },
     "Cluster0": {
-        "URL": "mongodb+srv://lgpd:9IYh4W6c3KazMJxG@cluster0.l3bbk.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+        "URL": "mongodb://localhost:27017",
         "name": "Cluster0"
     },
     "Cluster1": {
-        "URL": "mongodb+srv://lgpd:9IYh4W6c3KazMJxG@cluster0.l3bbk.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+        "URL": "mongodb://localhost:27017",
         "name": "BKP_PRIMARY"
     },
     "Cluster2": {
-        "URL": "mongodb+srv://lgpd:9IYh4W6c3KazMJxG@cluster0.l3bbk.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+        "URL": "mongodb://localhost:27017",
         "name": "BKP_SECONDARY"
     },
     "algorithm" : "aes-256-ctr",
