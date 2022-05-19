@@ -3,7 +3,7 @@
 
 ## Description
 
-### This software implements lgpd delete simulation using rabbitMQ to replicate data between databases.
+### This system use rabbitMQ to replicate data between databases simulating backups and use technology "crypto" to encrypt and decrypt user data.
 
 ## Teacher
 - Sakaue
