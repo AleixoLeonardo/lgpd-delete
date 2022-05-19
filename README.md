@@ -25,12 +25,12 @@
 - [RabbitMQ](https://www.rabbitmq.com/documentation.html)
 - [NodeJS](https://nodejs.org/en/docs/guides/)
 
-
-#How to Install
 ## Requirements
 - Node latest version
 - MongoDb Server community
 - Postman
+
+#How to Install
 
 - Clone project
 - Run command inside project folder
