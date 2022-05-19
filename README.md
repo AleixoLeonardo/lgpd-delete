@@ -30,7 +30,7 @@
 - MongoDb Server community
 - Postman
 
-#How to Install
+# How to Install
 
 - Clone project
 - Run command inside project folder
