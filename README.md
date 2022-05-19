@@ -8,7 +8,7 @@
 ## Teacher
 - Sakaue
 
-## University
+## College
 - Fatec São José dos Campos Professor Jessen Vidal
 
 ## Tecnologias:
