@@ -5,10 +5,10 @@
 
 ### This system use rabbitMQ to replicate data between databases simulating backups and use technology "crypto" to encrypt and decrypt user data.
 
-## Teacher
+## Professor
 - Sakaue
 
-## College
+## Facult
 - Fatec São José dos Campos Professor Jessen Vidal
 
 ## Technologies:
@@ -16,6 +16,11 @@
   - MongoDB
   - RabbitMQ
   - NodeJS
+
+# Diagram
+
+![board](https://user-images.githubusercontent.com/33356648/169424377-f7d4471d-7703-4600-b9e2-1ade28380175.jpg)
+
 
 # References
 
